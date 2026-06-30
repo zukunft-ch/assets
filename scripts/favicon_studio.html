@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Favicon Studio — Die Zukunft</title>
+<style>
+  :root { --bg:#0f1117; --panel:#171a23; --line:#262b38; --txt:#e6e8ee; --muted:#8b93a7; --accent:#3b82f6; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:13px/1.4 ui-sans-serif,system-ui,sans-serif; background:var(--bg); color:var(--txt); }
+  .wrap { display:grid; grid-template-columns:340px 1fr; min-height:100vh; }
+  .panel { background:var(--panel); border-right:1px solid var(--line); padding:18px; overflow-y:auto; max-height:100vh; }
+  .stage { padding:24px; display:flex; flex-direction:column; gap:24px; align-items:flex-start; }
+  h1 { font-size:15px; margin:0 0 4px; letter-spacing:.3px; }
+  h2 { font-size:11px; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin:18px 0 8px; border-top:1px solid var(--line); padding-top:12px; }
+  .row { display:flex; align-items:center; gap:8px; margin:7px 0; }
+  .row label { flex:0 0 92px; color:var(--muted); }
+  .row input[type=range] { flex:1; accent-color:var(--accent); }
+  .row .val { flex:0 0 46px; text-align:right; font-variant-numeric:tabular-nums; }
+  .row input[type=color] { width:34px; height:24px; padding:0; border:1px solid var(--line); background:none; border-radius:4px; }
+  .row select, .row input[type=checkbox] { accent-color:var(--accent); }
+  .preview-card { background:#fff; border-radius:12px; padding:18px; box-shadow:0 8px 30px rgba(0,0,0,.4); }
+  .preview-card.dark { background:#1c1c1e; }
+  .preview-card.checker { background:
+      conic-gradient(#0000 90deg,#0003 0 180deg,#0000 0 270deg,#0003 0) 0 0/16px 16px, #fff; }
+  #big { width:360px; height:360px; cursor:grab; touch-action:none; }
+  #big:active { cursor:grabbing; }
+  .tabsizes { display:flex; gap:18px; align-items:flex-end; }
+  .tabsizes figure { margin:0; text-align:center; color:var(--muted); font-size:11px; }
+  .tabsizes img { image-rendering:pixelated; border:1px solid #ccc; background:#f2f2f4; display:block; margin:0 auto 4px; }
+  .bar { background:#f2f2f4; padding:6px 10px; border-radius:6px; display:inline-flex; gap:8px; align-items:center; color:#333; }
+  .bar img { width:16px; height:16px; }
+  .bar span { font-size:12px; color:#555; }
+  button { background:var(--accent); color:#fff; border:0; border-radius:6px; padding:8px 12px; font:inherit; cursor:pointer; }
+  button.ghost { background:#222736; color:var(--txt); border:1px solid var(--line); }
+  .btns { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  textarea { width:100%; height:90px; background:#0c0e14; color:#9fb4d8; border:1px solid var(--line); border-radius:6px; font:11px/1.4 ui-monospace,monospace; padding:8px; resize:vertical; }
+  .cmd { font:11px/1.5 ui-monospace,monospace; color:#7dd3fc; word-break:break-all; background:#0c0e14; padding:8px; border-radius:6px; border:1px solid var(--line); }
+  .hint { color:var(--muted); font-size:11px; margin:6px 0 0; }
+  .presets { display:flex; gap:6px; flex-wrap:wrap; }
+  .presets button { padding:5px 9px; font-size:11px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="panel">
+    <h1>Favicon Studio</h1>
+    <div class="hint">Live preview of the occlusion-rendered SwissCross favicon. Drag the big preview to rotate.</div>
+
+    <h2>Geometry</h2>
+    <div class="row"><label>arm</label><input type="range" id="arm" min="1" max="5" step="1" value="3"><span class="val" id="arm_v"></span></div>
+    <div class="row"><label>thick</label><input type="range" id="thick" min="0" max="2" step="1" value="1"><span class="val" id="thick_v"></span></div>
+    <div class="row"><label>cube size</label><input type="range" id="cubeSize" min="0.5" max="1" step="0.01" value="0.88"><span class="val" id="cubeSize_v"></span></div>
+    <div class="row"><label>gap fill</label><input type="checkbox" id="solidblock"><span class="hint" style="margin:0">merge cubes (cubeSize→1)</span></div>
+
+    <h2>Camera</h2>
+    <div class="row"><label>cameraZ</label><input type="range" id="cameraZ" min="8" max="32" step="0.5" value="22"><span class="val" id="cameraZ_v"></span></div>
+    <div class="row"><label>fov</label><input type="range" id="fov" min="15" max="60" step="1" value="35"><span class="val" id="fov_v"></span></div>
+    <div class="row"><label>rot X</label><input type="range" id="rotX" min="-3.14" max="3.14" step="0.01" value="0.4"><span class="val" id="rotX_v"></span></div>
+    <div class="row"><label>rot Y</label><input type="range" id="rotY" min="-3.14" max="3.14" step="0.01" value="0.6"><span class="val" id="rotY_v"></span></div>
+
+    <h2>Surface &amp; lines</h2>
+    <div class="row"><label>mode</label>
+      <select id="mode">
+        <option value="hidden">hidden-line (white fill)</option>
+        <option value="glass">glass (tinted, translucent)</option>
+        <option value="solid">solid (gradient fill + shade)</option>
+        <option value="wire">pure wireframe (no occlusion)</option>
+      </select>
+    </div>
+    <div class="row"><label>line width</label><input type="range" id="stroke" min="0.1" max="2" step="0.05" value="0.55"><span class="val" id="stroke_v"></span></div>
+    <div class="row"><label>line color</label>
+      <select id="strokeMode"><option value="gradient">gradient</option><option value="solid">solid</option></select>
+      <input type="color" id="strokeColor" value="#3b82f6">
+    </div>
+    <div class="row"><label>surface</label><input type="color" id="fillColor" value="#ffffff"></div>
+    <div class="row"><label>surface α</label><input type="range" id="fillOpacity" min="0" max="1" step="0.05" value="1"><span class="val" id="fillOpacity_v"></span></div>
+    <div class="row"><label>shading</label><input type="checkbox" id="shade"><span class="hint" style="margin:0">light top faces</span></div>
+
+    <h2>Presets</h2>
+    <div class="presets">
+      <button class="ghost" data-preset="hero">Hero match</button>
+      <button class="ghost" data-preset="thin">Thin</button>
+      <button class="ghost" data-preset="glass">Glass</button>
+      <button class="ghost" data-preset="flat">Flat cross</button>
+    </div>
+
+    <h2>Export</h2>
+    <div class="cmd" id="cmd"></div>
+    <div class="btns">
+      <button id="dl">Download SVG</button>
+      <button class="ghost" id="copy">Copy SVG</button>
+      <button class="ghost" id="copyParams">Copy params</button>
+    </div>
+    <p class="hint">When you like it, click <b>Copy params</b> and paste the line back to me — I'll ship it to all favicon files + PNG/ICO.</p>
+  </div>
+
+  <div class="stage">
+    <div class="row" style="gap:14px">
+      <span class="hint">preview bg:</span>
+      <button class="ghost" data-bg="checker">checker</button>
+      <button class="ghost" data-bg="">white</button>
+      <button class="ghost" data-bg="dark">dark</button>
+    </div>
+    <div class="preview-card checker" id="card">
+      <div id="big"></div>
+    </div>
+
+    <div class="tabsizes">
+      <figure><img id="p16" width="64" height="64" alt="">16&nbsp;px</figure>
+      <figure><img id="p32" width="96" height="96" alt="">32&nbsp;px</figure>
+      <figure><img id="p64" width="128" height="128" alt="">64&nbsp;px</figure>
+      <figure>
+        <div class="bar"><img id="ptab" alt=""><span>die-zukunft.ch — browser tab</span></div>
+        <div style="height:6px"></div>tab&nbsp;mock
+      </figure>
+    </div>
+    <textarea id="src" spellcheck="false" readonly></textarea>
+  </div>
+</div>
+
+<script>
+const GRAD = `<linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#a855f7"/><stop offset="50%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient>`;
+const cubeVerts=[[-.5,-.5,-.5],[.5,-.5,-.5],[-.5,.5,-.5],[.5,.5,-.5],[-.5,-.5,.5],[.5,-.5,.5],[-.5,.5,.5],[.5,.5,.5]];
+const faces=[[0,1,3,2,[0,0,-1]],[4,6,7,5,[0,0,1]],[0,2,6,4,[-1,0,0]],[1,5,7,3,[1,0,0]],[2,3,7,6,[0,1,0]],[0,4,5,1,[0,-1,0]]];
+const allEdges=[[0,1],[1,3],[3,2],[2,0],[4,5],[5,7],[7,6],[6,4],[0,4],[1,5],[2,6],[3,7]];
+
+function build(arm,thick){const p=[],s=new Set();const add=(x,y,z)=>{const k=x+','+y+','+z;if(!s.has(k)){s.add(k);p.push([x,y,z]);}};
+  for(let x=-arm;x<=arm;x++)for(let y=-thick;y<=thick;y++)for(let z=-thick;z<=thick;z++)add(x,y,z);
+  for(let x=-thick;x<=thick;x++)for(let y=-arm;y<=arm;y++)for(let z=-thick;z<=thick;z++)add(x,y,z);
+  for(let x=-thick;x<=thick;x++)for(let y=-thick;y<=thick;y++)for(let z=-arm;z<=arm;z++)add(x,y,z);
+  return p;}
+function rot(x,y,z,rx,ry){const cx=Math.cos(rx),sx=Math.sin(rx);const y1=y*cx-z*sx,z1=y*sx+z*cx;
+  const cy=Math.cos(ry),sy=Math.sin(ry);return [x*cy+z1*sy,y1,-x*sy+z1*cy];}
+
+function render(o){
+  const pos=build(o.arm,o.thick);const occ=new Set(pos.map(p=>p.join(',')));
+  const f=1/Math.tan((o.fov*Math.PI/180)/2);const box=64,pad=3;
+  const items=[];
+  function projVerts(cx,cy,cz,idxs){const out=[];for(const i of idxs){const v=cubeVerts[i];
+      const w=rot(cx+v[0]*o.cubeSize,cy+v[1]*o.cubeSize,cz+v[2]*o.cubeSize,o.rotX,o.rotY);out.push(w);}return out;}
+  if(o.mode==='wire'){
+    for(const [cx,cy,cz] of pos){for(const [a,b] of allEdges){
+        const A=projVerts(cx,cy,cz,[a])[0],B=projVerts(cx,cy,cz,[b])[0];
+        const pa=proj(A),pb=proj(B);if(!pa||!pb)continue;items.push({type:'line',depth:(A[2]+B[2])/2,pa,pb});}}
+  } else {
+    for(const [cx,cy,cz] of pos){for(const [a,b,c,d,n] of faces){
+      if(occ.has((cx+n[0])+','+(cy+n[1])+','+(cz+n[2])))continue;
+      const rw=projVerts(cx,cy,cz,[a,b,c,d]);const rn=rot(n[0],n[1],n[2],o.rotX,o.rotY);
+      const cc=[(rw[0][0]+rw[1][0]+rw[2][0]+rw[3][0])/4,(rw[0][1]+rw[1][1]+rw[2][1]+rw[3][1])/4,(rw[0][2]+rw[1][2]+rw[2][2]+rw[3][2])/4];
+      const view=[-cc[0],-cc[1],o.cameraZ-cc[2]];
+      if(rn[0]*view[0]+rn[1]*view[1]+rn[2]*view[2]<=0)continue;
+      const pts=rw.map(proj);if(pts.some(p=>!p))continue;
+      const shade=0.55+0.45*((rn[1]+1)/2);
+      items.push({type:'poly',depth:cc[2],pts,shade});}}
+  }
+  function proj(w){const pz=w[2]-o.cameraZ;if(pz>=-0.1)return null;return [f*w[0]/-pz, f*-w[1]/-pz];}
+  if(!items.length)return svg('',box);
+  items.sort((p,q)=>p.depth-q.depth);
+  const xs=[],ys=[];items.forEach(it=>{const ps=it.type==='line'?[it.pa,it.pb]:it.pts;ps.forEach(p=>{xs.push(p[0]);ys.push(p[1]);});});
+  const minx=Math.min(...xs),maxx=Math.max(...xs),miny=Math.min(...ys),maxy=Math.max(...ys);
+  const sc=(box-2*pad)/Math.max(maxx-minx,maxy-miny);const ox=(minx+maxx)/2,oy=(miny+maxy)/2;
+  const T=p=>[((p[0]-ox)*sc+box/2).toFixed(2),(-(p[1]-oy)*sc+box/2).toFixed(2)];
+  const strokeRef=o.strokeMode==='gradient'?'url(#g)':o.strokeColor;
+  let body='';
+  for(const it of items){
+    if(it.type==='line'){const a=T(it.pa),b=T(it.pb);
+      body+=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${strokeRef}" stroke-width="${o.stroke}" stroke-linecap="round"/>`;continue;}
+    const pstr=it.pts.map(T).map(p=>p[0]+','+p[1]).join(' ');
+    let fill,fo;
+    if(o.mode==='solid'){fill='url(#g)';fo=o.shade?it.shade:o.fillOpacity;}
+    else if(o.mode==='glass'){fill=o.fillColor;fo=(o.shade?it.shade:1)*o.fillOpacity;}
+    else {fill=o.fillColor;fo=o.fillOpacity*(o.shade?it.shade:1);}
+    body+=`<polygon points="${pstr}" fill="${fill}" fill-opacity="${fo.toFixed(2)}" stroke="${strokeRef}" stroke-width="${o.stroke}" stroke-linejoin="round" stroke-linecap="round"/>`;
+  }
+  return svg(body,box);
+}
+function svg(body,box){return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${box} ${box}"><defs>${GRAD}</defs><g>${body}</g></svg>`;}
+
+const ids=['arm','thick','cubeSize','cameraZ','fov','rotX','rotY','stroke','fillOpacity'];
+const opts={};
+function readOpts(){
+  for(const id of ids)opts[id]=parseFloat(document.getElementById(id).value);
+  if(document.getElementById('solidblock').checked)opts.cubeSize=1;
+  opts.mode=document.getElementById('mode').value;
+  opts.strokeMode=document.getElementById('strokeMode').value;
+  opts.strokeColor=document.getElementById('strokeColor').value;
+  opts.fillColor=document.getElementById('fillColor').value;
+  opts.shade=document.getElementById('shade').checked;
+  return opts;
+}
+function paramStr(o){return `mode=${o.mode} arm=${o.arm} thick=${o.thick} cubeSize=${o.cubeSize} cameraZ=${o.cameraZ} fov=${o.fov} rotX=${o.rotX} rotY=${o.rotY} stroke=${o.stroke} strokeMode=${o.strokeMode} strokeColor=${o.strokeColor} fill=${o.fillColor} fillOpacity=${o.fillOpacity} shade=${o.shade}`;}
+
+let curSVG='';
+function update(){
+  const o=readOpts();
+  for(const id of ids)document.getElementById(id+'_v').textContent=document.getElementById(id).value;
+  curSVG=render(o);
+  document.getElementById('big').innerHTML=curSVG;
+  document.getElementById('src').value=curSVG;
+  document.getElementById('cmd').textContent=paramStr(o);
+  const url='data:image/svg+xml;utf8,'+encodeURIComponent(curSVG);
+  for(const el of ['p16','p32','p64','ptab'])document.getElementById(el).src=url;
+}
+document.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',update));
+
+// drag-to-rotate
+const big=document.getElementById('big');let drag=null;
+big.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,rx:+document.getElementById('rotX').value,ry:+document.getElementById('rotY').value};big.setPointerCapture(e.pointerId);});
+big.addEventListener('pointermove',e=>{if(!drag)return;
+  let ry=drag.ry+(e.clientX-drag.x)*0.01, rx=drag.rx+(e.clientY-drag.y)*0.01;
+  rx=Math.max(-3.14,Math.min(3.14,rx));ry=Math.max(-3.14,Math.min(3.14,ry));
+  document.getElementById('rotX').value=rx.toFixed(2);document.getElementById('rotY').value=ry.toFixed(2);update();});
+window.addEventListener('pointerup',()=>drag=null);
+
+// bg + presets
+document.querySelectorAll('[data-bg]').forEach(b=>b.onclick=()=>{document.getElementById('card').className='preview-card '+(b.dataset.bg||'');});
+const presets={
+  hero:{mode:'hidden',arm:3,thick:1,cubeSize:0.88,cameraZ:22,fov:35,rotX:0.4,rotY:0.6,stroke:0.55,strokeMode:'gradient',fillColor:'#ffffff',fillOpacity:1,shade:false,solidblock:false},
+  thin:{mode:'hidden',arm:3,thick:1,cubeSize:0.78,cameraZ:24,fov:32,rotX:0.4,rotY:0.6,stroke:0.35,strokeMode:'gradient',fillColor:'#ffffff',fillOpacity:1,shade:false,solidblock:false},
+  glass:{mode:'glass',arm:3,thick:1,cubeSize:0.88,cameraZ:22,fov:35,rotX:0.4,rotY:0.6,stroke:0.4,strokeMode:'gradient',fillColor:'#3b82f6',fillOpacity:0.22,shade:true,solidblock:false},
+  flat:{mode:'hidden',arm:3,thick:0,cubeSize:0.9,cameraZ:22,fov:35,rotX:0.4,rotY:0.6,stroke:0.5,strokeMode:'gradient',fillColor:'#ffffff',fillOpacity:1,shade:false,solidblock:false},
+};
+document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{const p=presets[b.dataset.preset];
+  for(const k in p){const el=document.getElementById(k);if(!el)continue;if(el.type==='checkbox')el.checked=p[k];else el.value=p[k];}update();});
+
+// export
+document.getElementById('dl').onclick=()=>{const a=document.createElement('a');a.href='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(curSVG);a.download='favicon.svg';a.click();};
+document.getElementById('copy').onclick=()=>navigator.clipboard.writeText(curSVG);
+document.getElementById('copyParams').onclick=()=>navigator.clipboard.writeText(paramStr(readOpts()));
+
+update();
+</script>
+</body>
+</html>
