@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """Generate per-article OG images for Die Zukunft news posts.
 
-Reads the wireframe Swiss cross from the favicon SVG and composes a 1200x630
-PNG with the brandmark, article title, and date. Renders via Inkscape so the
-local Clash Display / Switzer fonts are picked up.
+Reads the wireframe Swiss cross from a DEDICATED OG wireframe SVG (decoupled
+from the favicon, which is now a polygon/occlusion render) and composes a
+1200x630 PNG with the brandmark, article title, and date. Renders via Inkscape
+so the local Clash Display / Switzer fonts are picked up.
+
+The cross is placed by auto-fitting its bounding box, so the source SVG's
+coordinate system / geometry can change without breaking this script. Regenerate
+the wireframe with: gen_favicon.py "mode=edges ..." > assets/og-images/cross-wireframe.svg
 
 Usage:
     gen_article_og.py <slug> <out_dir> --de "Title DE" --fr "Title FR" \\
@@ -18,7 +23,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-FAVICON = ROOT / "avenir" / "static" / "favicon.svg"
+# Dedicated line-wireframe asset for OG art (decoupled from the polygon favicon).
+WIREFRAME = ROOT / "assets" / "og-images" / "cross-wireframe.svg"
+CROSS_FIT = 600  # target max dimension (px) for the watermark cross
 
 W, H = 1200, 630
 BRANDMARK = {
@@ -36,12 +43,18 @@ NEWS_LABEL = {
 
 
 def read_lines() -> list[tuple[float, float, float, float]]:
-    """Parse <line> elements from the favicon SVG."""
-    text = FAVICON.read_text()
+    """Parse <line> elements from the dedicated OG wireframe SVG."""
+    text = WIREFRAME.read_text()
     pat = re.compile(
         r'<line\s+x1="([-0-9.]+)"\s+y1="([-0-9.]+)"\s+x2="([-0-9.]+)"\s+y2="([-0-9.]+)"'
     )
-    return [tuple(map(float, m.groups())) for m in pat.finditer(text)]
+    lines = [tuple(map(float, m.groups())) for m in pat.finditer(text)]
+    if not lines:
+        raise SystemExit(
+            f"No <line> elements found in {WIREFRAME}. Regenerate it with:\n"
+            f"  python3 gen_favicon.py 'mode=edges ...' > {WIREFRAME}"
+        )
+    return lines
 
 
 def xml_escape(s: str) -> str:
@@ -78,11 +91,15 @@ def format_date(iso: str, lang: str) -> str:
 
 def build_svg(title: str, date_iso: str, lang: str) -> str:
     lines = read_lines()
-    # Cross watermark — center it behind text, scale it large, fade it.
-    scale = 26
+    # Cross watermark — auto-fit the wireframe's bounding box, center behind text, fade it.
+    xs = [v for (x1, y1, x2, y2) in lines for v in (x1, x2)]
+    ys = [v for (x1, y1, x2, y2) in lines for v in (y1, y2)]
+    bcx, bcy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
+    scale = CROSS_FIT / max(max(xs) - min(xs), max(ys) - min(ys))
     cx, cy = W / 2, H / 2 + 30
     cross_lines = "\n".join(
-        f'    <line x1="{x1*scale:.1f}" y1="{y1*scale:.1f}" x2="{x2*scale:.1f}" y2="{y2*scale:.1f}"/>'
+        f'    <line x1="{(x1-bcx)*scale:.1f}" y1="{(y1-bcy)*scale:.1f}"'
+        f' x2="{(x2-bcx)*scale:.1f}" y2="{(y2-bcy)*scale:.1f}"/>'
         for (x1, y1, x2, y2) in lines
     )
     title_lines = wrap_title(title)

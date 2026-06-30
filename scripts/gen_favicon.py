@@ -67,6 +67,7 @@ def render(o, box=64, pad=3):
                 pa, pb = proj(va), proj(vb)
                 if pa and pb: items.append(('line',(va[2]+vb[2])/2,(pa,pb),0))
     else:
+        seen_edge = set()
         for (cx,cy,cz0) in pos:
             for (a,b,c,d,n) in faces:
                 if (cx+n[0],cy+n[1],cz0+n[2]) in occ: continue
@@ -79,7 +80,17 @@ def render(o, box=64, pad=3):
                 pts = [proj(p) for p in rw]
                 if any(p is None for p in pts): continue
                 shade = 0.55+0.45*((rn[1]+1)/2)
-                items.append(('poly', cc[2], pts, shade))
+                if o['mode'] == 'edges':
+                    # emit the perimeter edges of each visible face as deduped lines
+                    for i in range(4):
+                        p1, p2 = pts[i], pts[(i+1) % 4]
+                        key = tuple(sorted((tuple(round(v,3) for v in p1),
+                                            tuple(round(v,3) for v in p2))))
+                        if key in seen_edge: continue
+                        seen_edge.add(key)
+                        items.append(('line', cc[2], (p1, p2), 0))
+                else:
+                    items.append(('poly', cc[2], pts, shade))
     if not items:
         return wrap('', box)
     items.sort(key=lambda it: it[1])
