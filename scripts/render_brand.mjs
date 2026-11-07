@@ -4,6 +4,7 @@ import fs from 'fs';
 //   node scripts/render_brand.mjs '<repos JSON>' '<og JSON>'
 //   repos: [["repo-name","one line"], ...]   -> out/social-<repo>.png (1280x640)
 //   og:    [["de","die zukunft.","Wir bauen sie.","Eine neue Schweizer Partei","die-zukunft.ch"], ...] -> out/og-<lang>.png
+//   articles (3rd arg): [["de","Title","Aktuelles","7. November 2026","die-zukunft.ch","<slug>"], ...] -> out/<slug>.<lang>.png
 //   Always renders out/apple-touch-icon.png, icon-192.png, icon-512.png, org-avatar.png.
 // Env: OUT (default ./out/), FONTS (default ../avenir/static/fonts, i.e. the theme clone next to this repo).
 // Needs: npm i playwright, plus Google Chrome installed (channel: 'chrome').
@@ -50,5 +51,14 @@ for (const [lang, wm, line, sub, host] of og) {
    + '<div style="font-size:34px;font-weight:620;letter-spacing:-.025em;margin-top:16px;max-width:700px;line-height:1.2">'+line+'</div></div></div>'
    + '<div style="display:flex;justify-content:flex-end;font:500 20px ui-monospace,SF Mono,Menlo,monospace;letter-spacing:.06em;color:#6b7276;text-transform:uppercase"><span>'+host+'</span></div></body>';
   await shot(html, 1200, 630, OUT+'og-'+lang+'.png');
+}
+// Article OG cards (1200x630): [["de","Title","Aktuelles","7. November 2026","die-zukunft.ch","<slug>"], ...]
+const art = JSON.parse(process.argv[4] || '[]');
+for (const [lang, title, kicker, date, host, slug] of art) {
+  const html = '<body style="background:#eef0ec;font-family:Switzer;color:#121517;padding:60px 72px;display:flex;flex-direction:column;justify-content:space-between;background-image:radial-gradient(120% 80% at 50% -10%,#fff 0%,rgba(255,255,255,0) 60%)">'
+   + '<div style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:16px;font:500 21px ui-monospace,SF Mono,Menlo,monospace;letter-spacing:.06em;color:#4f565b;text-transform:uppercase"><span style="width:42px;height:3px;border-radius:3px;background:'+GRAD+'"></span>'+kicker+' · '+date+'</div><img src="'+ICON+'" style="width:92px;height:92px"></div>'
+   + '<div style="font-size:'+(title.length>60?62:72)+'px;font-weight:650;letter-spacing:-.04em;line-height:1.02;max-width:1000px;text-wrap:balance">'+title+'</div>'
+   + '<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-family:Clash Display;font-weight:700;font-size:44px;letter-spacing:-.015em;background:'+GRAD+';-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;padding-bottom:.07em">'+({de:'die zukunft.',fr:'le futur.',it:'il futuro.',en:'the future.'}[lang])+'</span><span style="font:500 20px ui-monospace,SF Mono,Menlo,monospace;letter-spacing:.06em;color:#6b7276;text-transform:uppercase">'+host+'</span></div></body>';
+  await shot(html, 1200, 630, OUT+slug+'.'+lang+'.png');
 }
 await b.close();
