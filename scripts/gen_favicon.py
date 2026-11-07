@@ -5,18 +5,17 @@ Mirrors assets/scripts/favicon_studio.html exactly: same occlusion (hidden-line)
 renderer, so a params line copied out of the studio reproduces the preview 1:1.
 
 Usage:
-  python3 gen_favicon.py "mode=hidden arm=4 thick=1 cubeSize=1 cameraZ=32 fov=60 \
-      rotX=1.01 rotY=1.08 stroke=0.3 strokeMode=gradient strokeColor=#3b82f6 \
-      fill=#ffffff fillOpacity=0.7 shade=false" > favicon.svg
+  python3 gen_favicon.py "$(cat ../favicons/favicon.params)" > favicon.svg
 
   python3 gen_favicon.py            # no args -> the shipped defaults below
 """
 import math, sys
 
 GRAD = ('<linearGradient id="g" x1="0" y1="0" x2="1" y2="1">'
-        '<stop offset="0%" stop-color="#a855f7"/>'
-        '<stop offset="50%" stop-color="#3b82f6"/>'
-        '<stop offset="100%" stop-color="#06b6d4"/></linearGradient>')
+        '<stop offset="0%" stop-color="#f43f5e"/>'
+        '<stop offset="35%" stop-color="#c026d3"/>'
+        '<stop offset="70%" stop-color="#6d28d9"/>'
+        '<stop offset="100%" stop-color="#4338ca"/></linearGradient>')  # Alpenglühen (Nov 2026)
 cubeVerts = [(-.5,-.5,-.5),(.5,-.5,-.5),(-.5,.5,-.5),(.5,.5,-.5),
              (-.5,-.5,.5),(.5,-.5,.5),(-.5,.5,.5),(.5,.5,.5)]
 faces = [(0,1,3,2,(0,0,-1)),(4,6,7,5,(0,0,1)),(0,2,6,4,(-1,0,0)),
@@ -24,9 +23,11 @@ faces = [(0,1,3,2,(0,0,-1)),(4,6,7,5,(0,0,1)),(0,2,6,4,(-1,0,0)),
 edges = [(0,1),(1,3),(3,2),(2,0),(4,5),(5,7),(7,6),(6,4),(0,4),(1,5),(2,6),(3,7)]
 
 # Shipped favicon parameters (mirror of the studio "Hero match", tuned).
-DEFAULTS = dict(mode='hidden', arm=4, thick=1, cubeSize=1.0, cameraZ=32.0,
-                fov=60.0, rotX=1.01, rotY=1.08, stroke=0.3, strokeMode='gradient',
-                strokeColor='#3b82f6', fill='#ffffff', fillOpacity=0.7, shade=False)
+# Nov 2026: "Würfelkreuz, klar" — 7 cubes (arm 1), hidden-line, bold strokes,
+# Alpenglühen gradient. Chosen over the long arm-4 lattice for legibility at 16 px.
+DEFAULTS = dict(mode='hidden', arm=1, thick=0, cubeSize=1.0, cameraZ=14.0,
+                fov=40.0, rotX=0.5, rotY=0.7, stroke=0.9, strokeMode='gradient',
+                strokeColor='#c026d3', fill='#ffffff', fillOpacity=0.85, shade=False)
 
 def build(arm, thick):
     p, seen = [], set()

@@ -1,8 +1,17 @@
+<p align="center"><img src="favicons/favicon.svg" width="120" alt=""></p>
+
 # Die Zukunft — Brand Assets
 
-Source files and generators for the party's favicons and Open Graph images.
-The **3D wireframe Swiss cross** is the core mark; brand gradient is
-purple `#a855f7` → blue `#3b82f6` → teal `#06b6d4`.
+Source files and generators for the party's icon, favicons, app icons, Open Graph
+images and GitHub images.
+
+- **Icon:** "Würfelkreuz, klar", a 3D Swiss cross of seven cubes, drawn with
+  hidden-line removal so it stays legible down to 16 px.
+- **Wordmark:** `die zukunft.` / `le futur.` / `il futuro.` / `the future.` in Clash Display 700,
+  lowercase, gradient including the full stop.
+- **Palette "Alpenglühen":** rose `#f43f5e` → magenta `#c026d3` → violet `#6d28d9` →
+  indigo `#4338ca` (dark-mode tints `#fb7185` `#e879f9` `#a78bfa` `#818cf8`), on a
+  ceramic ground `#eef0ec` with charcoal ink `#121517`.
 
 ## Layout
 
@@ -15,8 +24,12 @@ og-images/
   og-{de,fr,it,en}.png   # generic per-language OG cards (1200×630)
   cross-wireframe.svg    # dedicated wireframe cross used inside article OG cards
   cross-wireframe.params # params for cross-wireframe.svg
+github/
+  org-avatar.png         # 1024×1024 GitHub organisation avatar
+  social-<repo>.png      # 1280×640 social preview per repository
 scripts/
   gen_favicon.py      # favicon SVG generator (shared renderer with the studio)
+  render_brand.mjs    # renders app icons, org avatar, social previews, OG cards (Playwright)
   favicon_studio.html # interactive tuning tool (live sliders, size previews)
   gen_article_og.py   # per-article OG card generator
 ```
