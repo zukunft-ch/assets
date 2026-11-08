@@ -7,12 +7,15 @@ import fs from 'fs';
 //   articles (3rd arg): [["de","Title","Aktuelles","7. November 2026","die-zukunft.ch","<slug>"], ...] -> out/<slug>.<lang>.png
 //   Always renders out/apple-touch-icon.png, icon-192.png, icon-512.png, org-avatar.png.
 // Env: OUT (default ./out/), FONTS (default ../avenir/static/fonts, i.e. the theme clone next to this repo).
+// Other sites (the-future.world): ICON_FILE (path to the mark SVG), BRAND_WM, BRAND_SUB, BRAND_HOST
+//   (wordmark, tagline and host on the social previews; defaults are the Swiss chapter's).
 // Needs: npm i playwright, plus Google Chrome installed (channel: 'chrome').
 import path from 'path';
 const OUT = (process.env.OUT || path.resolve('out')) + '/';
 const FONTS = process.env.FONTS || path.resolve('../avenir/static/fonts');
 fs.mkdirSync(OUT, { recursive: true });
-const ICON = 'data:image/svg+xml;base64,' + fs.readFileSync(new URL('../favicons/favicon.svg', import.meta.url)).toString('base64');
+const ICON = 'data:image/svg+xml;base64,' + fs.readFileSync(process.env.ICON_FILE || new URL('../favicons/favicon.svg', import.meta.url)).toString('base64');
+const BRAND_WM = process.env.BRAND_WM || 'die zukunft.', BRAND_SUB = process.env.BRAND_SUB || 'Eine neue Schweizer Partei', BRAND_HOST = process.env.BRAND_HOST || 'die-zukunft.ch';
 const FONT_CSS = `@font-face{font-family:"Clash Display";font-weight:700;src:url("file://${FONTS}/clash-display-700.woff2")}
 @font-face{font-family:"Switzer";font-weight:100 900;src:url("file://${FONTS}/switzer-variable.woff2")}`;
 const GRAD = 'linear-gradient(100deg,#f43f5e 0%,#c026d3 33%,#6d28d9 67%,#4338ca 100%)';
@@ -36,9 +39,9 @@ for (const [name, line] of repos) {
   const html = '<body style="background:#eef0ec;font-family:Switzer;color:#121517;padding:72px 84px;display:flex;flex-direction:column;justify-content:space-between;background-image:radial-gradient(120% 80% at 50% -10%,#fff 0%,rgba(255,255,255,0) 60%)">'
    + '<div style="display:flex;align-items:center;gap:16px;font:500 22px ui-monospace,SF Mono,Menlo,monospace;letter-spacing:.06em;color:#4f565b;text-transform:uppercase"><span style="width:42px;height:3px;border-radius:3px;background:'+GRAD+'"></span>github.com/zukunft-ch/'+name+'</div>'
    + '<div style="display:flex;align-items:center;gap:44px"><img src="'+ICON+'" style="width:200px;height:200px"><div>'
-   + '<div style="font-family:Clash Display;font-weight:700;font-size:118px;line-height:.9;letter-spacing:-.022em;background:'+GRAD+';-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;padding-bottom:.07em;white-space:nowrap">die zukunft.</div>'
+   + '<div style="font-family:Clash Display;font-weight:700;font-size:118px;line-height:.9;letter-spacing:-.022em;background:'+GRAD+';-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;padding-bottom:.07em;white-space:nowrap">'+BRAND_WM+'</div>'
    + '<div style="font-size:30px;font-weight:600;letter-spacing:-.02em;margin-top:18px;max-width:760px;line-height:1.25">'+line+'</div></div></div>'
-   + '<div style="display:flex;justify-content:space-between;font:500 20px ui-monospace,SF Mono,Menlo,monospace;letter-spacing:.06em;color:#6b7276;text-transform:uppercase"><span>Eine neue Schweizer Partei</span><span>die-zukunft.ch</span></div></body>';
+   + '<div style="display:flex;justify-content:space-between;font:500 20px ui-monospace,SF Mono,Menlo,monospace;letter-spacing:.06em;color:#6b7276;text-transform:uppercase"><span>'+BRAND_SUB+'</span><span>'+BRAND_HOST+'</span></div></body>';
   await shot(html, 1280, 640, OUT+'social-'+name+'.png');
 }
 // OG images per language (1200x630)
