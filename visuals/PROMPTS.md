@@ -75,3 +75,11 @@ large, real landscape) applied to Swiss everyday life and politics.
 Put files in `visuals/incoming/` (PNG + TXT per slot) and tell Claude. It will:
 create WebP/AVIF at 800 and 1600 px, wire them into the site with the caption «Visualisierung · KI-generiert»
 and alt texts in four languages, and record prompt, tool and date per image in `visuals/provenance.json`.
+
+## The Future (the-future.world)
+
+The international site uses the same rules with a placeless style (any continent, no Swiss cues).
+Its slots, style block, scene prompts and alt texts live in the site repo:
+`the-future.world/visuals/slots.toml` (13 areas, join page, homepage scene). Paste `style` + a slot's
+`scene`, save as `the-future.world/visuals/incoming/<slot>.png` (+ `<slot>.txt` with the exact
+prompt), then run `mise run visuals` there.
