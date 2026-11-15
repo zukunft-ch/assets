@@ -1,8 +1,8 @@
 # Visuals · prompt kit
 
 Images for die-zukunft.ch, generated with ChatGPT (image generation) in one consistent visual language:
-**Switzerland in a tangible near future** — the Cyberparadism idea (a calm, advanced human place inside a
-large, real landscape) applied to Swiss everyday life and politics.
+**Switzerland in a tangible near future** — a calm, advanced human place inside a
+large, real landscape, applied to Swiss everyday life and politics.
 
 ## Rules (non-negotiable)
 
